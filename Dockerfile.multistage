@@ -1,0 +1,26 @@
+FROM golang:1.18-buster AS build
+
+WORKDIR /app
+
+COPY go.mod ./
+COPY go.sum ./
+RUN go mod download
+
+COPY *.go ./
+
+RUN go build -o /fiber-mongo-hrms
+
+##
+## Deploy
+##
+FROM gcr.io/distroless/base-debian10
+
+WORKDIR /
+
+COPY --from=build /fiber-mongo-hrms /fiber-mongo-hrms
+
+EXPOSE 3000
+
+USER nonroot:nonroot
+
+ENTRYPOINT ["/fiber-mongo-hrms"]
